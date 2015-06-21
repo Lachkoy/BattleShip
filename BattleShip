@@ -1,0 +1,243 @@
+#include<iostream>
+#include<vector>
+#include<windows.h>
+#include <stdlib.h>
+#include <time.h>
+using namespace std;
+char field[10][10];
+ char getrandC(int cC)
+ {	
+	char randC;
+	srand(time(NULL));
+	randC=rand() % cC + 'A';
+	return randC;
+ } 
+   int getrandN(int cN)
+{	
+	int randN;
+	srand(time(NULL));
+	randN=rand() % cN;
+	return randN;
+}
+	
+class Ship
+{
+	
+ 	vector<pair<char,int> > ship;
+	pair<char, int> tmp;
+	int size;
+
+	public:
+	void setSize(int _size)
+	{
+		size=_size;
+	}
+	int getSize()
+	{
+		return size;
+	}
+	void generateShip(int lowerLineNum,char lowerLineChar,int upperLineNum,char upperLineChar)
+	{		
+		int _randN,n;
+		char _randC;
+		_randC=getrandC(10);
+		tmp.first=_randC;
+		_randN=getrandN(10);
+		tmp.second=_randN;
+	
+		
+		ship.push_back(tmp);
+		do
+		{
+			n=rand() % 4+1;
+		
+			switch (n)
+			{
+			
+				case 1:
+				{	
+				
+					if(_randN>=lowerLineNum)
+					{
+						for(int i=1;i<size;i++)
+						{
+							_randN--;
+							tmp.second=_randN;
+							ship.push_back(tmp);
+						}
+					}
+					break;
+				}
+				case 2:
+				{	
+					
+					if(_randC>=lowerLineChar)
+					{
+						for(int i=1;i<size;i++)
+						{
+							_randC--;
+							tmp.first=_randC;
+							ship.push_back(tmp);
+						}
+					}
+					break;
+				}
+				case 3:
+				{	
+					if(_randN<=upperLineNum)
+					{
+						for(int i=1;i<size;i++)
+						{
+							_randN++;
+							tmp.second=_randN;
+							ship.push_back(tmp);
+						}
+					}
+					break;
+				}
+				case 4:
+				{	
+					if(_randC<=upperLineChar)
+					{
+						for(int i=1;i<size;i++)
+						{
+							_randC++;
+							tmp.first=_randC;
+							ship.push_back(tmp);
+						}
+					}
+					break;
+				}
+			}
+		}while(ship.size()!=size);
+	
+	}
+		bool operator ==( Ship &other)
+		{
+			for(int i=0;i<other.ship.size();i++)
+			{
+				if((ship[i].first!=other.ship[i].first) || (ship[i].second!=other.ship[i].second)) return false;
+				
+			}
+			return true;
+		}
+		bool isEmpty()
+		{
+			if(ship.empty()) 
+			{
+				return true;
+			}
+			return false;
+		}
+	 	bool isHit(pair<char,int> _coordinates)		
+	 	{
+	 		for(int i=0;i<size;i++)
+	 		{
+			 	if((ship[i].first==_coordinates.first) && (ship[i].second==_coordinates.second)) return true;
+			 	
+			}
+			return false;
+		}
+		void lost(pair<char,int> _coordinates)
+		{
+			for(int i=0;i<size;i++)
+	 		{
+			 	if((ship[i].first==_coordinates.first) && (ship[i].second==_coordinates.second)) ship.erase(ship.begin()+i);
+			 	
+			}
+		}
+	
+
+};
+ void createField()
+	  {	
+	 	
+	 	  for(int i=0;i<10;i++)
+	 		for(int j=0;j<10;j++)
+	 			field[i][j]='.';
+	 }
+	   void showField()
+	 {	
+	 	char Row='A';
+	 	for(int i=-1;i<=9;i++)
+	 	{
+	 		if(i==-1) cout<<" "; 
+			else cout<<i;
+		}
+		cout<<endl;
+	 	for(int i=0;i<10;i++)
+	 	{
+			cout<<Row;
+	 		for(int j=0;j<10;j++)
+				cout<<field[i][j];
+			cout<<endl;
+			Row++;
+		}
+	}
+	bool shipLeft(Ship a[3])
+	{	
+		int counter=0;
+		for(int i=0;i<3;i++)
+		{
+			if(a[i].isEmpty()) counter++;
+			if(counter==3) return false;
+		}
+		return true;
+	}
+int main()
+{	
+	bool hit=false;	
+	int tries=0;
+	createField();
+	showField();
+	Ship a[3];
+	a[0].setSize(4);
+	a[0].generateShip(3,'D',6,'G');
+	a[1].setSize(4);
+//	do
+//	{
+		a[1].generateShip(3,'D',6,'G');
+//	}while(a[0]==a[1]);
+	a[2].setSize(5);
+//	do
+//	{
+		a[2].generateShip(4,'E',5,'F');//Function rand() always generates same coordinates for the ships,even after i try to prevent it with the
+		//do-while loop it crashes
+//	}while((a[0]==a[2]) && (a[1]==a[2]));
+	pair <char,int> coordinates;
+	do
+	{
+		do
+		{
+			cout<<"Vuvedete koordinati";
+			cin>>coordinates.first>>coordinates.second;
+		}while((((int)coordinates.first<65) || ((int)coordinates.first>74)) && (((int)coordinates.second>=0) || ((int)coordinates.second<=9)));//check if coordinates okay
+		tries++;
+		for(int i=0;i<3;i++)
+		{	
+			if(a[i].isEmpty()) break;
+	
+			if(a[i].isHit(coordinates)) 
+			{
+				a[i].lost(coordinates);
+				field[coordinates.first-65][coordinates.second]='X';
+				showField();
+				system("CLS");
+				cout<<"Hit"<<endl;
+				hit=true;
+			
+			}
+		}
+		if((!hit))
+		{
+			field[coordinates.first-65][coordinates.second]='-';
+			showField();
+			system("CLS");
+			cout<<"Miss"<<endl;
+		}
+		hit=false;
+		showField();
+	}while(shipLeft(a));
+	cout<<"Congratulation,You completed the game in : "<<tries<<" tries";
+	return 0;
+}
